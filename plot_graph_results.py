@@ -35,7 +35,8 @@ def plot_combined_results(simple_csv, exotic_csv, output_file):
         ax[0].plot(subset['Nodes'], subset['Theoretical Success Probability'], linestyle='--', label=f"{graph_type} Theoretical", color=color_map[graph_type])
     ax[0].set_xlabel("Number of Nodes")
     ax[0].set_ylabel("Success Probability")
-    ax[0].set_title("Success Probabilities by Graph Type")
+    ax[0].set_yscale('log')  # Set y-axis to logarithmic scale
+    ax[0].set_title("Success Probabilities by Graph Type (Log Scale)")
     ax[0].legend()
 
     # Plot average iteration times
