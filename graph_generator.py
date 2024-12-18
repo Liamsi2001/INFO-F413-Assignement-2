@@ -1,57 +1,83 @@
 import networkx as nx
 import os
+import random
+
+# Seed globale pour la reproductibilité
+SEED = 42
+random.seed(SEED)
 
 def generate_and_save_graphs():
-    # Directory to save standard graphs
+    # Répertoire pour sauvegarder les graphes standards
     if not os.path.exists("graphs"):
         os.makedirs("graphs")
 
     graph_types = [
         ("complete", lambda n: nx.complete_graph(n)),
-        ("tree", lambda n: nx.balanced_tree(2, int(n ** 0.5))),
-        ("circular_ladder", lambda n: nx.circular_ladder_graph(n)),
-        ("line_complete", lambda n: nx.line_graph(nx.complete_graph(n))),
+        ("toroidal_grid", lambda n: nx.grid_2d_graph(int(n ** 0.5), int(n ** 0.5), periodic=True)),
+        ("cycle_with_chords", lambda n: add_chords_to_cycle(nx.cycle_graph(n))),
+        ("binary_tree_extended", lambda n: add_edges_to_binary_tree(nx.balanced_tree(2, int(n ** 0.25))))
     ]
 
-    sizes = [10, 20, 30, 40, 50, 100, 150, 200]  # Number of vertices
+    sizes = list(range(50, 501, 50))  # Tailles de 50 à 500, par pas de 50
 
     for graph_type, generator in graph_types:
         for size in sizes:
-            # Generate graph
             graph = generator(size)
-
-            # Save graph to a file in edge list format
-            filename = f"graphs/{graph_type}_{size}.txt"
+            filename = f"graphs/{graph_type}_{str(size).zfill(3)}.txt"
             nx.write_edgelist(graph, filename, data=False)
             print(f"Graph saved: {filename}")
 
 def generate_and_save_exotic_graphs():
-    # Directory to save exotic graphs
+    # Répertoire pour sauvegarder les graphes exotiques
     if not os.path.exists("exotic_graphs"):
         os.makedirs("exotic_graphs")
 
+    # Types de graphes exotiques
     exotic_graph_types = [
-        ("barbell", lambda n: nx.barbell_graph(n // 2, 1)),
-        ("wheel", lambda n: nx.wheel_graph(n)),
-        ("chordal", lambda n: nx.interval_graph([(i, i + 1) for i in range(n)])),  # Corrected
-        ("hierarchical", lambda n: nx.disjoint_union_all([nx.complete_graph(n // 3)] * 3)),
-        ("mesh", lambda n: nx.grid_graph(dim=[n // 3, n // 3, n // 3])),
+        ("clique_with_noise", lambda n: add_noise_to_clique(nx.complete_graph(n))),
+        ("hexagonal_toroidal", lambda n: nx.convert_node_labels_to_integers(
+            nx.hexagonal_lattice_graph(max(2, int(n ** 0.5) // 2), max(2, (int(n ** 0.5) // 2) * 2), periodic=True))),
+        ("small_world", lambda n: nx.watts_strogatz_graph(n, 4, 0.1, seed=SEED)),
+        ("circular_ladder", lambda n: nx.circular_ladder_graph(max(3, n // 10)))
     ]
 
-
-    sizes = [10, 20, 30, 40, 50, 100, 150, 200]  # Number of vertices
+    sizes = list(range(50, 501, 50))
 
     for graph_type, generator in exotic_graph_types:
         for size in sizes:
-            # Generate graph
-            graph = generator(size)
+            try:
+                graph = generator(size)
+                filename = f"exotic_graphs/{graph_type}_{str(size).zfill(3)}.txt"
+                nx.write_edgelist(graph, filename, data=False)
+                print(f"Exotic graph saved: {filename}")
+            except Exception as e:
+                print(f"Error generating {graph_type} with size {size}: {e}")
 
-            # Save graph to a file in edge list format
-            filename = f"exotic_graphs/{graph_type}_{size}.txt"
-            nx.write_edgelist(graph, filename, data=False)
-            print(f"Exotic graph saved: {filename}")
+
+def add_chords_to_cycle(graph):
+    """Ajouter des chords prédéfinis à un graphe cycle."""
+    nodes = list(graph.nodes)
+    for i in range(0, len(nodes) - 2, 3):
+        graph.add_edge(nodes[i], nodes[i + 2])
+    return graph
+
+def add_edges_to_binary_tree(tree):
+    """Ajouter des arêtes supplémentaires à un arbre pour le rendre plus complexe."""
+    nodes = list(tree.nodes)
+    for i in range(0, len(nodes) - 2, 4):
+        if i + 4 < len(nodes):
+            tree.add_edge(nodes[i], nodes[i + 4])
+    return tree
+
+def add_noise_to_clique(graph):
+    """Modifier un graphe complet pour ajouter du bruit tout en conservant la connectivité."""
+    edges = list(graph.edges)
+    if edges:
+        graph.remove_edge(*edges[0])  # Supprime une arête fixe
+    if len(graph.nodes) > 2:
+        graph.add_edge(0, len(graph.nodes) - 1)  # Ajoute une nouvelle arête
+    return graph
 
 if __name__ == "__main__":
     generate_and_save_graphs()
     generate_and_save_exotic_graphs()
-# The generate_and_save_graphs() function generates standard graphs like complete, grid, tree, circular ladder, and line complete graphs for different sizes (number of vertices). The graphs are saved in the graphs directory in edge list format. The generate_and_save_exotic_graphs() function generates exotic graphs like barbell, wheel, chordal, hierarchical, and mesh graphs for different sizes. The exotic graphs are saved in the exotic_graphs directory in edge list format. The sizes list contains the number of vertices for which the graphs are generated. The graph generator script can be run to generate and save the graphs for later use in experiments or analysis.

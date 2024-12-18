@@ -42,7 +42,6 @@ plot: $(CSV_FILES)
 # Clean up build files
 clean:
 	rm -f $(TARGET) $(OBJECTS) $(CSV_FILES)
-	rm -rf plots
 
 # Default rule (runs data and plot)
 all: data plot
