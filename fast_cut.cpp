@@ -1,5 +1,6 @@
 #include "fast_cut.hpp"
 #include "contract.hpp"
+#include "brute_force_min_cut.hpp"
 #include <iostream>
 #include <vector>
 #include <cmath>
@@ -33,17 +34,64 @@ Graph reduceGraph(const Graph &graph, int n, int t) {
         int v = reducedGraph[randomIndex].second;
 
         // Contract the selected edge
+        if (adjacency[u].empty() || adjacency[v].empty()) {
+            continue; // Skip invalid contractions
+        }
         contract(reducedGraph, u, v, adjacency);
+
+        // Ensure graph validity
+        reducedGraph.erase(remove_if(reducedGraph.begin(), reducedGraph.end(),
+            [](const Edge &e) { return e.first == e.second; }),
+            reducedGraph.end());
+    }
+
+    if (adjacency.size() < t) {
+        cerr << "Error: Graph reduced below target size t=" << t << endl;
+        exit(EXIT_FAILURE);
     }
 
     return reducedGraph;
 }
 
+static Graph reindexGraph(const Graph &graph, unordered_map<int, int> &newIndexMap) {
+    Graph reindexedGraph;
+    int index = 0;
+    for (const auto &edge : graph) {
+        int u = edge.first;
+        int v = edge.second;
+
+        // Assign new indices if not already assigned
+        if (newIndexMap.find(u) == newIndexMap.end()) {
+            newIndexMap[u] = index++;
+        }
+        if (newIndexMap.find(v) == newIndexMap.end()) {
+            newIndexMap[v] = index++;
+        }
+
+        // Add the edge with reindexed vertices
+        reindexedGraph.emplace_back(newIndexMap[u], newIndexMap[v]);
+    }
+    return reindexedGraph;
+}
+
+
+
 // FastCut algorithm implementation
 int fastCut(Graph graph, int n) {
     if (n <= 6) {
-        // Base case: use the standard contract algorithm
-        return contractAlgorithm(graph, n);
+        /* cout << "Base case reached with n = " << n << " and graph size = " << graph.size() << endl; */
+
+        // Reindex the graph
+        unordered_map<int, int> newIndexMap;
+        Graph reindexedGraph = reindexGraph(graph, newIndexMap);
+
+        // Debug: Print reindexed graph
+        /* cout << "Reindexed graph:" << endl;
+        for (const auto &edge : reindexedGraph) {
+            cout << "Edge: " << edge.first << " - " << edge.second << endl;
+        } */
+
+        return bruteForceMinCut(reindexedGraph, newIndexMap.size());
     }
 
     // Compute the threshold t
@@ -51,11 +99,18 @@ int fastCut(Graph graph, int n) {
 
     // Reduce the graph to t vertices twice
     Graph reducedGraph1 = reduceGraph(graph, n, t);
+/*     cout << "Reduced graph 1 has " << reducedGraph1.size() << " edges after reduction." << endl; */
+
     Graph reducedGraph2 = reduceGraph(graph, n, t);
+/*     cout << "Reduced graph 2 has " << reducedGraph2.size() << " edges after reduction." << endl; */
+
 
     // Recursively apply FastCut to the reduced graphs
     int minCut1 = fastCut(reducedGraph1, t);
     int minCut2 = fastCut(reducedGraph2, t);
+
+/*     cout << "MinCut1: " << minCut1 << ", MinCut2: " << minCut2 << endl; */
+
 
     // Return the minimum of the two cuts
     return min(minCut1, minCut2);

@@ -85,7 +85,7 @@ void processGraphs(const string& graphDirectory, const string& contractOutputFil
         int contractSuccessCount = 0;
         int contractIterations = 0;
         auto contractStart = high_resolution_clock::now();
-        auto timeLimit = milliseconds(2000);
+        auto timeLimit = milliseconds(100);
 
         while (true) {
             int contractMinCut = contractAlgorithm(graph, numVertices);

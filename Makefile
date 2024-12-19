@@ -7,13 +7,13 @@ PYTHON = python  # Python executable
 
 # Targets
 TARGET = main
-OBJECTS = main.o contract.o deterministic_min_cut.o fast_cut.o
-HEADERS = contract.hpp deterministic_min_cut.hpp fast_cut.hpp
+OBJECTS = main.o contract.o deterministic_min_cut.o fast_cut.o brute_force_min_cut.o
+HEADERS = contract.hpp deterministic_min_cut.hpp fast_cut.hpp brute_force_min_cut.hpp 
 
 # Plot-related files
 PLOT_SCRIPT = plot_graph_results.py
 CSV_FILES = fast_simple.csv fast_exotic.csv contract_simple.csv contract_exotic.csv
-PLOT_OUTPUT = plots/*
+PLOT_OUTPUT = plots/* 
 
 # Build the main executable
 $(TARGET): $(OBJECTS)
@@ -34,6 +34,10 @@ deterministic_min_cut.o: deterministic_min_cut.cpp deterministic_min_cut.hpp
 # Compile fast_cut.cpp
 fast_cut.o: fast_cut.cpp fast_cut.hpp
 	$(CXX) $(CXXFLAGS) -c fast_cut.cpp
+
+# Compile brute_force_min_cut.cpp
+brute_force_min_cut.o: brute_force_min_cut.cpp brute_force_min_cut.hpp
+	$(CXX) $(CXXFLAGS) -c brute_force_min_cut.cpp
 
 # Rule to run the main program and generate CSV
 data: $(TARGET)
