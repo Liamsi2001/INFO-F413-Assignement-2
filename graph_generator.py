@@ -43,7 +43,7 @@ def generate_and_save_graphs():
         ("grid", lambda n: generate_grid_graph(n)),
     ]
 
-    sizes = list(range(50, 501, 50))  # Tailles de 50 à 500, par pas de 50
+    sizes = list(range(50, 301, 50))  # Tailles de 50 à 500, par pas de 50
 
     for graph_type, generator in graph_types:
         for size in sizes:
@@ -67,7 +67,7 @@ def generate_and_save_exotic_graphs():
         ("Power-Law Cluster", lambda n: generate_powerlaw_cluster(n, max(1, n//2), 0.25, seed=SEED)),
     ]
 
-    sizes = list(range(50, 501, 50))
+    sizes = list(range(50, 301, 50))
 
     for graph_type, generator in exotic_graph_types:
         for size in sizes:

@@ -9,12 +9,16 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <algorithm> // For std::remove_if
+#include <random> // For std::mt19937 and std::uniform_int_distribution
 
 using namespace std;
 
 // Graph representation
 using Edge = pair<int, int>;
 using Graph = vector<Edge>;
+
+// Persistent random engine
+static std::mt19937 eng(std::random_device{}());
 
 // Function to reduce a graph to t vertices using the contract algorithm
 Graph reduceGraph(const Graph &graph, int n, int t) {
@@ -29,7 +33,9 @@ Graph reduceGraph(const Graph &graph, int n, int t) {
 
     while (adjacency.size() > t) {
         // Select a random edge
-        int randomIndex = rand() % reducedGraph.size();
+        std::uniform_int_distribution<> distr(0, reducedGraph.size() - 1);
+        int randomIndex = distr(eng);
+
         int u = reducedGraph[randomIndex].first;
         int v = reducedGraph[randomIndex].second;
 

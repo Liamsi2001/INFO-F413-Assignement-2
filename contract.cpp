@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <algorithm> // For std::remove_if
+#include <random> // For std::mt19937 and std::uniform_int_distribution
 
 using namespace std;
 
@@ -37,7 +38,6 @@ void contract(Graph &graph, int u, int v, unordered_map<int, unordered_set<int>>
     graph.erase(remove_if(graph.begin(), graph.end(), [](const Edge &e) { return e.first == e.second; }), graph.end());
 }
 
-// Contract algorithm implementation
 int contractAlgorithm(Graph graph, int n) {
     unordered_map<int, unordered_set<int>> adjacency;
     for (const auto &edge : graph) {
@@ -45,9 +45,15 @@ int contractAlgorithm(Graph graph, int n) {
         adjacency[edge.second].insert(edge.first);
     }
 
+    // Initialize random number generator
+    std::random_device rd;
+    std::mt19937 eng(rd()); // Mersenne Twister RNG
+
     while (adjacency.size() > 2) {
-        // Select a random edge
-        int randomIndex = rand() % graph.size();
+        // Generate a random edge index
+        std::uniform_int_distribution<> distr(0, graph.size() - 1);
+        int randomIndex = distr(eng);
+
         int u = graph[randomIndex].first;
         int v = graph[randomIndex].second;
 
