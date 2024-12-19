@@ -3,11 +3,11 @@
 #include <vector>
 #include <string>
 #include <filesystem>
-#include <cstdlib>
-#include <ctime>
-#include <chrono>
 #include <regex>
+#include <chrono>
+#include <math.h>
 #include "contract.hpp"
+#include "fast_cut.hpp"
 #include "deterministic_min_cut.hpp"
 
 using namespace std;
@@ -16,7 +16,7 @@ using namespace std::chrono;
 using Edge = pair<int, int>;
 using Graph = vector<Edge>;
 
-// Fonction pour lire un graphe depuis un fichier
+// Function to read a graph from a file
 Graph readGraphFromFile(const string& filename) {
     ifstream infile(filename);
     if (!infile.is_open()) {
@@ -34,9 +34,9 @@ Graph readGraphFromFile(const string& filename) {
     return graph;
 }
 
-// Fonction pour extraire le nombre de sommets à partir du nom du fichier
+// Function to extract the number of vertices from the file name
 int extractNumVertices(const string& filename) {
-    regex numRegex(R"_(\d+)_");  // Trouve les nombres dans le nom de fichier
+    regex numRegex(R"_(\d+)_");  // Extracts numbers in the file name
     smatch match;
     if (regex_search(filename, match, numRegex)) {
         return stoi(match.str(0));
@@ -45,8 +45,8 @@ int extractNumVertices(const string& filename) {
     exit(EXIT_FAILURE);
 }
 
-// Fonction pour traiter les graphes dans un dossier donné
-void processGraphs(const string& graphDirectory, const string& outputFileName) {
+// Function to process graphs in a given directory
+void processGraphs(const string& graphDirectory, const string& contractOutputFile, const string& fastCutOutputFile) {
     vector<filesystem::directory_entry> graphFiles;
     for (const auto& entry : filesystem::directory_iterator(graphDirectory)) {
         if (entry.path().extension() == ".txt") {
@@ -54,76 +54,103 @@ void processGraphs(const string& graphDirectory, const string& outputFileName) {
         }
     }
 
-    ofstream outFile(outputFileName);
-    if (!outFile.is_open()) {
-        cerr << "Error: Unable to open " << outputFileName << " for writing" << endl;
+    ofstream contractOut(contractOutputFile);
+    ofstream fastCutOut(fastCutOutputFile);
+
+    if (!contractOut.is_open() || !fastCutOut.is_open()) {
+        cerr << "Error: Unable to open output files for writing" << endl;
         exit(EXIT_FAILURE);
     }
 
-    // Écrire l'en-tête du fichier CSV
-    outFile << "Graph File,Minimum Cut,Contract Success Rate,Avg Iteration Time (ms),Theoretical Success Probability\n";
+    // Write CSV headers
+    contractOut << "Graph File,Minimum Cut,Success Rate,Avg Iteration Time (ms),Theoretical Success Probability\n";
+    fastCutOut << "Graph File,Minimum Cut,Success Rate,Avg Iteration Time (ms),Theoretical Success Probability\n";
 
     for (const auto& entry : graphFiles) {
         string filePath = entry.path().string();
         string fileName = entry.path().filename().string();
         cout << "Processing file: " << filePath << endl;
 
-        // Extraire le nombre de sommets depuis le nom du fichier
         int numVertices = extractNumVertices(fileName);
+        double contractTheoreticalSuccessProbability = 2.0 / (numVertices * (numVertices - 1));
+        double fastCutTheoreticalProbability = 1 / log2(numVertices); // FastCut theoretical probability
 
-        // Lire le graphe depuis le fichier
+        // Read the graph from the file
         Graph graph = readGraphFromFile(filePath);
 
-        // Exécuter l'algorithme déterministe
+        // Deterministic Min-Cut
         int exactMinCut = stoerWagnerMinCut(graph, numVertices);
 
-        // Exécuter l'algorithme de contraction (Karger) avec une limite de temps
-        int successCount = 0;
-        int iterations = 0;
-        auto startContract = high_resolution_clock::now();
-        auto timeLimit = milliseconds(1000); // 1 seconde
+        // Contract Algorithm
+        int contractSuccessCount = 0;
+        int contractIterations = 0;
+        auto contractStart = high_resolution_clock::now();
+        auto timeLimit = milliseconds(2000);
 
         while (true) {
             int contractMinCut = contractAlgorithm(graph, numVertices);
             if (contractMinCut == exactMinCut) {
-                successCount++;
+                contractSuccessCount++;
             }
-            iterations++;
+            contractIterations++;
 
             auto now = high_resolution_clock::now();
-            if (now - startContract > timeLimit) {
+            if (now - contractStart > timeLimit) {
                 break;
             }
         }
 
-        auto endContract = high_resolution_clock::now();
-        auto contractDuration = duration_cast<milliseconds>(endContract - startContract).count();
+        auto contractEnd = high_resolution_clock::now();
+        double contractDuration = duration_cast<milliseconds>(contractEnd - contractStart).count();
+        double contractSuccessRate = (double)contractSuccessCount / contractIterations;
+        double contractAvgTime = contractDuration / contractIterations;
 
-        // Calcul des statistiques
-        double successRate = (double)successCount / iterations;
-        double avgIterationTime = (double)contractDuration / iterations;
-        double theoreticalSuccessProbability = 2.0 / (numVertices * (numVertices - 1));
+        contractOut << fileName << "," << exactMinCut << "," << contractSuccessRate << "," << contractAvgTime << "," << contractTheoreticalSuccessProbability << "\n";
 
-        // Écrire les résultats dans le fichier CSV
-        outFile << fileName << "," << exactMinCut << "," << successRate << "," << avgIterationTime << "," << theoreticalSuccessProbability << "\n";
-        cout << "Graph: " << fileName << ", Exact Min Cut: " << exactMinCut << ", Success Rate: " << successRate
-             << ", Avg Iteration Time: " << avgIterationTime << " ms, Theoretical Success Probability: "
-             << theoreticalSuccessProbability << endl;
+        // FastCut Algorithm
+        int fastCutSuccessCount = 0;
+        int fastCutIterations = 0;
+        auto fastCutStart = high_resolution_clock::now();
+
+        while (true) {
+            int fastCutMinCut = fastCut(graph, numVertices);
+            if (fastCutMinCut == exactMinCut) {
+                fastCutSuccessCount++;
+            }
+            fastCutIterations++;
+
+            auto now = high_resolution_clock::now();
+            if (now - fastCutStart > timeLimit) {
+                break;
+            }
+        }
+
+        auto fastCutEnd = high_resolution_clock::now();
+        double fastCutDuration = duration_cast<milliseconds>(fastCutEnd - fastCutStart).count();
+        double fastCutSuccessRate = (double)fastCutSuccessCount / fastCutIterations;
+        double fastCutAvgTime = fastCutDuration / fastCutIterations;
+
+        fastCutOut << fileName << "," << exactMinCut << "," << fastCutSuccessRate << "," << fastCutAvgTime << "," << fastCutTheoreticalProbability << "\n";
+
+        cout << "Graph: " << fileName << ", Min Cut: " << exactMinCut
+             << ", Contract Success Rate: " << contractSuccessRate
+             << ", FastCut Success Rate: " << fastCutSuccessRate
+             << endl;
     }
 
-    outFile.close();
-    cout << "Results saved to " << outputFileName << endl;
+    contractOut.close();
+    fastCutOut.close();
+    cout << "Results saved to " << contractOutputFile << " and " << fastCutOutputFile << endl;
 }
 
 int main() {
     srand(time(0));
 
-    // Traiter les graphes standards
-    processGraphs("graphs", "contract_simple.csv");
+    // Process standard graphs
+    processGraphs("graphs", "contract_simple.csv", "fast_simple.csv");
 
-    // Traiter les graphes exotiques
-    processGraphs("exotic_graphs", "contract_exotic.csv");
+    // Process exotic graphs
+    processGraphs("exotic_graphs", "contract_exotic.csv", "fast_exotic.csv");
 
     return 0;
 }
-
