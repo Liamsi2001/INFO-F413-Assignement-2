@@ -1,0 +1,25 @@
+Graph File,Minimum Cut,Success Rate,Avg Iteration Time (ms),Theoretical Success Probability,Iterations
+barbell_050.txt,1,1,28.9228,0.177184,4
+barbell_100.txt,1,1,219.053,0.150515,1
+barbell_150.txt,1,1,289.162,0.138335,1
+barbell_200.txt,1,1,532.186,0.130824,1
+barbell_250.txt,1,1,894.3,0.125537,1
+barbell_300.txt,1,1,1080.05,0.121524,1
+bipartite_050.txt,10,1,59.3715,0.177184,2
+bipartite_100.txt,20,1,371.768,0.150515,1
+bipartite_150.txt,30,1,1007.34,0.138335,1
+bipartite_200.txt,40,1,2309.13,0.130824,1
+bipartite_250.txt,50,1,5572.14,0.125537,1
+bipartite_300.txt,60,1,6255.25,0.121524,1
+complete_050.txt,49,1,241.616,0.177184,1
+complete_100.txt,99,1,1510.91,0.150515,1
+complete_150.txt,149,1,4144.48,0.138335,1
+complete_200.txt,199,1,10604,0.130824,1
+complete_250.txt,249,1,25352.6,0.125537,1
+complete_300.txt,299,1,30497.3,0.121524,1
+grid_050.txt,2,1,51.4825,0.177184,2
+grid_100.txt,2,1,218.694,0.150515,1
+grid_150.txt,2,1,434.385,0.138335,1
+grid_200.txt,2,1,880.216,0.130824,1
+grid_250.txt,2,1,1662.13,0.125537,1
+grid_300.txt,2,1,1664.94,0.121524,1

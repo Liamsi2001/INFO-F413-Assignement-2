@@ -1,0 +1,25 @@
+Graph File,Minimum Cut,Success Rate,Avg Iteration Time (ms),Theoretical Success Probability,Iterations
+barabasi_albert_050.txt,2,1,29.8045,0.177184,4
+barabasi_albert_100.txt,5,1,318.492,0.150515,1
+barabasi_albert_150.txt,5,1,629.882,0.138335,1
+barabasi_albert_200.txt,8,1,1406.91,0.130824,1
+barabasi_albert_250.txt,6,1,3043.61,0.125537,1
+barabasi_albert_300.txt,15,1,3403.71,0.121524,1
+erdos_renyi_050.txt,1,1,33.245,0.177184,4
+erdos_renyi_100.txt,1,1,123.887,0.150515,1
+erdos_renyi_150.txt,1,1,265.188,0.138335,1
+erdos_renyi_200.txt,1,1,574.053,0.130824,1
+erdos_renyi_250.txt,1,1,1138.58,0.125537,1
+erdos_renyi_300.txt,1,1,1043.26,0.121524,1
+Power-Law Cluster_050.txt,2,1,29.8523,0.177184,4
+Power-Law Cluster_100.txt,5,1,184.483,0.150515,1
+Power-Law Cluster_150.txt,6,1,506.086,0.138335,1
+Power-Law Cluster_200.txt,9,1,1366.84,0.130824,1
+Power-Law Cluster_250.txt,12,1,2865.61,0.125537,1
+Power-Law Cluster_300.txt,14,1,3315.46,0.121524,1
+watts_strogatz_050.txt,1,1,28.4905,0.177184,4
+watts_strogatz_100.txt,2,1,156.302,0.150515,1
+watts_strogatz_150.txt,4,1,370.452,0.138335,1
+watts_strogatz_200.txt,5,1,896.401,0.130824,1
+watts_strogatz_250.txt,8,1,2138.11,0.125537,1
+watts_strogatz_300.txt,9,1,2282.97,0.121524,1

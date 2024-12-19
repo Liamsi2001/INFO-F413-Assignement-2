@@ -62,9 +62,9 @@ def generate_and_save_exotic_graphs():
 
     exotic_graph_types = [
         ("erdos_renyi", lambda n: ensure_connected(nx.erdos_renyi_graph(n, log(n)/n, seed=SEED))),
-        ("watts_strogatz", lambda n: ensure_connected(nx.watts_strogatz_graph(n, n//5, 0.25, seed=SEED))),
-        ("barabasi_albert", lambda n: ensure_connected(nx.barabasi_albert_graph(n, max(1, n//5), seed=SEED))),
-        ("Power-Law Cluster", lambda n: generate_powerlaw_cluster(n, max(1, n//2), 0.25, seed=SEED)),
+        ("watts_strogatz", lambda n: ensure_connected(nx.watts_strogatz_graph(n, n//20, 0.25, seed=SEED))),
+        ("barabasi_albert", lambda n: ensure_connected(nx.barabasi_albert_graph(n, max(1, n//20), seed=SEED))),
+        ("Power-Law Cluster", lambda n: generate_powerlaw_cluster(n, max(1, n//20), 0.5, seed=SEED)),
     ]
 
     sizes = list(range(50, 301, 50))

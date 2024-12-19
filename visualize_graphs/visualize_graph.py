@@ -32,13 +32,13 @@ graph_examples = [
     ("Barbell Graph (n1=40, n2=20)", nx.barbell_graph(40, 20), "green"),
     ("Grid Graph (exact n=100)", generate_grid_graph(100), "orange"),
     ("Erdős-Rényi Graph (n=100, p=log(n)/n)", ensure_connected(nx.erdos_renyi_graph(100, log(100)/100, seed=42)), "purple"),
-    ("Watts-Strogatz Graph (n=100, k=20, p=0.25)", ensure_connected(nx.watts_strogatz_graph(100, 20, 0.25, seed=42)), "cyan"),
-    ("Barabási-Albert Graph (n=100, m=20)", ensure_connected(nx.barabasi_albert_graph(100, 20, seed=42)), "pink"),
-    ("Power-Law Cluster Graph (n=100, m=50, p=0.25)", generate_powerlaw_cluster(100, 50, 0.25, seed=42), "yellow"),
+    ("Watts-Strogatz Graph (n=100, k=5, p=0.25)", ensure_connected(nx.watts_strogatz_graph(100, 5, 0.25, seed=42)), "cyan"),
+    ("Barabási-Albert Graph (n=100, m=5)", ensure_connected(nx.barabasi_albert_graph(100, 5, seed=42)), "pink"),
+    ("Power-Law Cluster Graph (n=100, m=5, p=0.5)", generate_powerlaw_cluster(100, 5, 0.5, seed=42), "yellow"),
 ]
 
 # Définir la taille de la figure et le nombre de colonnes
-fig, axes = plt.subplots(nrows=2, ncols=4, figsize=(15, 10))
+fig, axes = plt.subplots(nrows=2, ncols=4, figsize=(15, 8))
 
 # Parcourir les graphes et les afficher
 for ax, (title, graph, color) in zip(axes.flatten(), graph_examples):
