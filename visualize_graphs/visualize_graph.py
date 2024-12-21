@@ -28,13 +28,13 @@ def generate_grid_graph(n):
 
 graph_examples = [
     ("Complete Graph K_100", nx.complete_graph(100), "red"),
-    ("Complete Bipartite Graph K_20_80", nx.complete_bipartite_graph(20, 80), "blue"),
+    ("Complete Bipartite Graph K_50_50", nx.complete_bipartite_graph(50, 50), "blue"),
     ("Barbell Graph (n1=40, n2=20)", nx.barbell_graph(40, 20), "green"),
     ("Grid Graph (exact n=100)", generate_grid_graph(100), "orange"),
-    ("Erdős-Rényi Graph (n=100, p=log(n)/n)", ensure_connected(nx.erdos_renyi_graph(100, log(100)/100, seed=42)), "purple"),
-    ("Watts-Strogatz Graph (n=100, k=5, p=0.25)", ensure_connected(nx.watts_strogatz_graph(100, 5, 0.25, seed=42)), "cyan"),
-    ("Barabási-Albert Graph (n=100, m=5)", ensure_connected(nx.barabasi_albert_graph(100, 5, seed=42)), "pink"),
-    ("Power-Law Cluster Graph (n=100, m=5, p=0.5)", generate_powerlaw_cluster(100, 5, 0.5, seed=42), "yellow"),
+    ("Erdős-Rényi Graph (n=100, p=0.1)", ensure_connected(nx.erdos_renyi_graph(100, 0.1, seed=42)), "purple"),
+    ("Watts-Strogatz Graph (n=100, k=7, p=0.1)", ensure_connected(nx.watts_strogatz_graph(100, 7, 0.1, seed=42)), "cyan"),
+    ("Barabási-Albert Graph (n=100, m=9)", ensure_connected(nx.barabasi_albert_graph(100, 9, seed=42)), "pink"),
+    ("Power-Law Cluster Graph (n=100, m=5, p=0.7)", generate_powerlaw_cluster(100, 5, 0.7, seed=42), "yellow"),
 ]
 
 # Définir la taille de la figure et le nombre de colonnes

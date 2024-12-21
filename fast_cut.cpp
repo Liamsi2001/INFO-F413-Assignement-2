@@ -1,123 +1,83 @@
-#include "fast_cut.hpp"
 #include "contract.hpp"
 #include "brute_force_min_cut.hpp"
 #include <iostream>
 #include <vector>
 #include <cmath>
-#include <cstdlib>
-#include <ctime>
+#include <random>
 #include <unordered_map>
 #include <unordered_set>
-#include <algorithm> // For std::remove_if
-#include <random> // For std::mt19937 and std::uniform_int_distribution
+#include <algorithm>
+#include <chrono>
+#include <future>  // Pour l'exécution parallèle
+#include <mutex>   // Pour protéger le cache en multithread
 
 using namespace std;
+using namespace std::chrono;
 
-// Graph representation
 using Edge = pair<int, int>;
 using Graph = vector<Edge>;
 
-// Persistent random engine
 static std::mt19937 eng(std::random_device{}());
 
-// Function to reduce a graph to t vertices using the contract algorithm
-Graph reduceGraph(const Graph &graph, int n, int t) {
-    Graph reducedGraph = graph;
-    unordered_map<int, unordered_set<int>> adjacency;
+// Cache pour la mémoïsation
+unordered_map<string, int> memo;
+mutex cacheMutex;  // Mutex pour protéger l'accès concurrent au cache
 
-    // Build adjacency list
-    for (const auto &edge : reducedGraph) {
-        adjacency[edge.first].insert(edge.second);
-        adjacency[edge.second].insert(edge.first);
+// Fonction pour hasher un graphe (permet de le mémoriser efficacement)
+string graphHash(const Graph &graph) {
+    vector<pair<int, int>> edges = graph;
+    sort(edges.begin(), edges.end());
+    string hash;
+    for (const auto &e : edges) {
+        hash += to_string(e.first) + "," + to_string(e.second) + ";";
     }
-
-    while (adjacency.size() > t) {
-        // Select a random edge
-        std::uniform_int_distribution<> distr(0, reducedGraph.size() - 1);
-        int randomIndex = distr(eng);
-
-        int u = reducedGraph[randomIndex].first;
-        int v = reducedGraph[randomIndex].second;
-
-        // Contract the selected edge
-        if (adjacency[u].empty() || adjacency[v].empty()) {
-            continue; // Skip invalid contractions
-        }
-        contract(reducedGraph, u, v, adjacency);
-
-        // Ensure graph validity
-        reducedGraph.erase(remove_if(reducedGraph.begin(), reducedGraph.end(),
-            [](const Edge &e) { return e.first == e.second; }),
-            reducedGraph.end());
-    }
-
-    if (adjacency.size() < t) {
-        cerr << "Error: Graph reduced below target size t=" << t << endl;
-        exit(EXIT_FAILURE);
-    }
-
-    return reducedGraph;
+    return hash;
 }
 
-static Graph reindexGraph(const Graph &graph, unordered_map<int, int> &newIndexMap) {
-    Graph reindexedGraph;
-    int index = 0;
-    for (const auto &edge : graph) {
-        int u = edge.first;
-        int v = edge.second;
-
-        // Assign new indices if not already assigned
-        if (newIndexMap.find(u) == newIndexMap.end()) {
-            newIndexMap[u] = index++;
-        }
-        if (newIndexMap.find(v) == newIndexMap.end()) {
-            newIndexMap[v] = index++;
-        }
-
-        // Add the edge with reindexed vertices
-        reindexedGraph.emplace_back(newIndexMap[u], newIndexMap[v]);
-    }
-    return reindexedGraph;
-}
-
-
-
-// FastCut algorithm implementation
-int fastCut(Graph graph, int n) {
+// FastCut avec mémoïsation et parallélisation conditionnelle
+int fastCut(const Graph &graph, int n) {
+    // Base case : si le graphe est petit, on utilise la méthode brute-force
     if (n <= 6) {
-        /* cout << "Base case reached with n = " << n << " and graph size = " << graph.size() << endl; */
-
-        // Reindex the graph
-        unordered_map<int, int> newIndexMap;
-        Graph reindexedGraph = reindexGraph(graph, newIndexMap);
-
-        // Debug: Print reindexed graph
-        /* cout << "Reindexed graph:" << endl;
-        for (const auto &edge : reindexedGraph) {
-            cout << "Edge: " << edge.first << " - " << edge.second << endl;
-        } */
-
-        return bruteForceMinCut(reindexedGraph, newIndexMap.size());
+        return bruteForceMinCut(graph, n);
     }
 
-    // Compute the threshold t
-    int t = static_cast<int>(ceil(1 + n / sqrt(2)));
+    // Vérification du cache pour éviter des calculs redondants
+    string hash = graphHash(graph);
+    {
+        lock_guard<mutex> lock(cacheMutex);
+        if (memo.find(hash) != memo.end()) {
+            return memo[hash];
+        }
+    }
 
-    // Reduce the graph to t vertices twice
-    Graph reducedGraph1 = reduceGraph(graph, n, t);
-/*     cout << "Reduced graph 1 has " << reducedGraph1.size() << " edges after reduction." << endl; */
+    // Calcul de la taille cible pour la contraction (Karger-Stein)
+    int t = ceil(1 + n / sqrt(2));
 
-    Graph reducedGraph2 = reduceGraph(graph, n, t);
-/*     cout << "Reduced graph 2 has " << reducedGraph2.size() << " edges after reduction." << endl; */
+    // Créer deux graphes réduits de manière indépendante
+    Graph reducedGraph1 = contract(graph, t);
+    Graph reducedGraph2 = contract(graph, t);
 
+    int result;
 
-    // Recursively apply FastCut to the reduced graphs
-    int minCut1 = fastCut(reducedGraph1, t);
-    int minCut2 = fastCut(reducedGraph2, t);
+    // Parallélisation conditionnelle pour les grands graphes
+    if (n > 10) {
+        // Lancer les deux réductions en parallèle
+        auto futureMinCut1 = async(launch::async, fastCut, reducedGraph1, t);
+        int minCut2 = fastCut(reducedGraph2, t);
+        int minCut1 = futureMinCut1.get();
+        result = min(minCut1, minCut2);
+    } else {
+        // Exécution séquentielle pour les petits graphes
+        int minCut1 = fastCut(reducedGraph1, t);
+        int minCut2 = fastCut(reducedGraph2, t);
+        result = min(minCut1, minCut2);
+    }
 
-/*     cout << "MinCut1: " << minCut1 << ", MinCut2: " << minCut2 << endl; */
+    // Stocker le résultat dans le cache pour éviter de recalculer
+    {
+        lock_guard<mutex> lock(cacheMutex);
+        memo[hash] = result;
+    }
 
-
-    // Return the minimum of the two cuts
-    return min(minCut1, minCut2);
+    return result;
 }

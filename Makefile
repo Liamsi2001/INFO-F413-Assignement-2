@@ -2,7 +2,7 @@
 
 # Compiler
 CXX = g++
-CXXFLAGS = -std=c++17 -O2 -Wall
+CXXFLAGS = -std=c++17 -O2 -Wall -pthread # C++ flags
 PYTHON = python  # Python executable
 
 # Targets

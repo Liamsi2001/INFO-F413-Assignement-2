@@ -78,6 +78,10 @@ def plot_iteration_times(contract_simple, contract_exotic, fast_simple, fast_exo
     contract_exotic_data = extract_columns(contract_exotic_data)
     fast_simple_data = extract_columns(fast_simple_data)
     fast_exotic_data = extract_columns(fast_exotic_data)
+    
+    #Theoretical running time
+    theoretical_contract = contract_simple_data[['Nodes', 'Theoretical Running Time (ms)']].drop_duplicates()
+    theoretical_fastcut = fast_simple_data[['Nodes', 'Theoretical Running Time (ms)']].drop_duplicates()
 
     # Plot average iteration times
     fig, ax = plt.subplots(2, 1, figsize=(14, 12))
@@ -89,6 +93,7 @@ def plot_iteration_times(contract_simple, contract_exotic, fast_simple, fast_exo
     for graph_type in contract_exotic_data['Graph Type'].unique():
         subset = contract_exotic_data[contract_exotic_data['Graph Type'] == graph_type]
         ax[0].plot(subset['Nodes'], subset['Avg Iteration Time (ms)'], label=f"{graph_type}", marker='o')
+    ax[0].plot(theoretical_contract['Nodes'], theoretical_contract['Theoretical Running Time (ms)'], linestyle='--', label="Contract Theoretical", color="black")
     ax[0].set_xlabel("Number of Nodes")
     ax[0].set_ylabel("Avg Iteration Time (ms)")
     ax[0].set_title("Contract Average Iteration Time")

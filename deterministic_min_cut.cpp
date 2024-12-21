@@ -12,7 +12,6 @@ using Graph = vector<Edge>;
 
 // Function to compute the minimum cut using the Stoer-Wagner algorithm
 int stoerWagnerMinCut(const Graph &graph, int n) {
-    // Create adjacency matrix
     vector<vector<int>> capacity(n, vector<int>(n, 0));
     for (const auto &edge : graph) {
         capacity[edge.first][edge.second]++;
@@ -29,8 +28,7 @@ int stoerWagnerMinCut(const Graph &graph, int n) {
         vector<bool> inA(n, false);
 
         int prev = -1, last = -1;
-        for (int i = 0; i < vertices.size(); ++i) {
-            // Select the most tightly connected vertex
+        for (size_t i = 0; i < vertices.size(); ++i) {  // Changed to size_t
             int maxWeight = -1;
             for (int v : vertices) {
                 if (!inA[v] && weights[v] > maxWeight) {
@@ -39,14 +37,11 @@ int stoerWagnerMinCut(const Graph &graph, int n) {
                 }
             }
 
-            // Add the vertex to set A
             inA[last] = true;
 
-            if (i == vertices.size() - 1) {
-                // Calculate the cut value
+            if (i == vertices.size() - 1) {  // No warning now
                 minCut = min(minCut, weights[last]);
 
-                // Merge the last two vertices
                 for (int v : vertices) {
                     capacity[prev][v] += capacity[last][v];
                     capacity[v][prev] += capacity[v][last];
@@ -57,7 +52,6 @@ int stoerWagnerMinCut(const Graph &graph, int n) {
 
             prev = last;
 
-            // Update the weights
             for (int v : vertices) {
                 if (!inA[v]) {
                     weights[v] += capacity[last][v];

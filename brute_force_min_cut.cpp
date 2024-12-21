@@ -1,57 +1,56 @@
-#include "brute_force_min_cut.hpp"
+#include <iostream>
 #include <vector>
 #include <unordered_set>
 #include <algorithm>
-#include <iostream> // For debugging
 #include <climits>
+#include <unordered_map>
 
 using namespace std;
 
-// Graph representation
 using Edge = pair<int, int>;
 using Graph = vector<Edge>;
 
-// Helper function to calculate the cut size
-static int calculateCutSize(const Graph &graph, const unordered_set<int> &subset) {
-    int cutSize = 0;
-    for (const auto &edge : graph) {
-        int u = edge.first, v = edge.second;
-        if ((subset.count(u) && !subset.count(v)) || (!subset.count(u) && subset.count(v))) {
-            cutSize++;
-        }
-    }
-    return cutSize;
-}
-
-
-// Brute force minimum cut algorithm
+// Optimized brute-force min-cut calculation
 int bruteForceMinCut(const Graph &graph, int n) {
+    if (n <= 1) return 0;  // No cut possible for single vertex or empty graph
+
     int minCut = INT_MAX;
 
-    // Generate all subsets of the vertices
-    for (int mask = 1; mask < (1 << n) - 1; ++mask) { // Avoid empty set and full set
-        unordered_set<int> subset;
-        for (int i = 0; i < n; ++i) {
-            if (mask & (1 << i)) { // Check if bit i is set
-                subset.insert(i);
+    // Collect all unique vertices
+    unordered_set<int> vertices;
+    for (const auto &edge : graph) {
+        vertices.insert(edge.first);
+        vertices.insert(edge.second);
+    }
+
+    vector<int> vertexList(vertices.begin(), vertices.end());
+    int vertexCount = vertexList.size();
+    int subsetSize = 1 << vertexCount;
+
+    // Map vertex to index for faster lookup
+    unordered_map<int, int> vertexIndex;
+    for (int i = 0; i < vertexCount; ++i) {
+        vertexIndex[vertexList[i]] = i;
+    }
+
+    // Iterate over all subsets except empty and full set
+    for (int mask = 1; mask < subsetSize - 1; ++mask) {
+        int cutSize = 0;
+        for (const auto &edge : graph) {
+            int uIndex = vertexIndex[edge.first];
+            int vIndex = vertexIndex[edge.second];
+
+            bool uInSubset = mask & (1 << uIndex);
+            bool vInSubset = mask & (1 << vIndex);
+
+            if (uInSubset != vInSubset) {
+                ++cutSize;
             }
         }
-
-        // Debug: Print current subset
-/*         cout << "Checking subset: ";
-        for (int v : subset) {
-            cout << v << " ";
-        }
-        cout << endl; */
-
-        // Calculate the cut size for this subset
-        int cutSize = calculateCutSize(graph, subset);
-
-        // Debug: Print cut size
-/*         cout << "Cut size: " << cutSize << endl; */
-
         minCut = min(minCut, cutSize);
     }
 
     return minCut;
 }
+
+

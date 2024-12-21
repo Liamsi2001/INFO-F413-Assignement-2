@@ -11,7 +11,7 @@ using Edge = std::pair<int, int>;
 using Graph = std::vector<Edge>;
 
 // Function declarations
-void contract(Graph &graph, int u, int v, std::unordered_map<int, std::unordered_set<int>> &adjacency);
-int contractAlgorithm(Graph graph, int n);
+Graph contract(Graph graph, int targetSize);
+int contractAlgorithm(const Graph &graph, int n);
 
 #endif // CONTRACT_HPP

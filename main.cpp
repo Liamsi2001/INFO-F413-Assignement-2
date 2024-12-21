@@ -63,8 +63,8 @@ void processGraphs(const string& graphDirectory, const string& contractOutputFil
     }
 
     // Write CSV headers
-    contractOut << "Graph File,Minimum Cut,Success Rate,Avg Iteration Time (ms),Theoretical Success Probability,Iterations\n";
-    fastCutOut << "Graph File,Minimum Cut,Success Rate,Avg Iteration Time (ms),Theoretical Success Probability,Iterations\n";
+    contractOut << "Graph File,Minimum Cut,Success Rate,Avg Iteration Time (ms),Theoretical Success Probability,Iterations,Theoretical Running Time (ms)\n";
+    fastCutOut << "Graph File,Minimum Cut,Success Rate,Avg Iteration Time (ms),Theoretical Success Probability,Iterations,Theoretical Running Time (ms)\n";
 
     for (const auto& entry : graphFiles) {
         string filePath = entry.path().string();
@@ -74,6 +74,9 @@ void processGraphs(const string& graphDirectory, const string& contractOutputFil
         int numVertices = extractNumVertices(fileName);
         double contractTheoreticalSuccessProbability = 2.0 / (numVertices * (numVertices - 1));
         double fastCutTheoreticalProbability = 1 / log2(numVertices); // FastCut theoretical probability
+
+        double contractTheoreticalRunningTime = numVertices * numVertices;
+        double fastCutTheoreticalRunningTime = numVertices * numVertices * log2(numVertices);
 
         // Read the graph from the file
         Graph graph = readGraphFromFile(filePath);
@@ -85,7 +88,7 @@ void processGraphs(const string& graphDirectory, const string& contractOutputFil
         int contractSuccessCount = 0;
         int contractIterations = 0;
         auto contractStart = high_resolution_clock::now();
-        auto timeLimit = milliseconds(100);
+        auto timeLimit = milliseconds(1000);
 
         while (true) {
             int contractMinCut = contractAlgorithm(graph, numVertices);
@@ -105,7 +108,7 @@ void processGraphs(const string& graphDirectory, const string& contractOutputFil
         double contractSuccessRate = (double)contractSuccessCount / contractIterations;
         double contractAvgTime = (contractDuration / 1000.0) / contractIterations; // Convert to milliseconds
 
-        contractOut << fileName << "," << exactMinCut << "," << contractSuccessRate << "," << contractAvgTime << "," << contractTheoreticalSuccessProbability << "," << contractIterations << "\n";
+        contractOut << fileName << "," << exactMinCut << "," << contractSuccessRate << "," << contractAvgTime << "," << contractTheoreticalSuccessProbability << "," << contractIterations << "," << contractTheoreticalRunningTime << "\n";
 
         // FastCut Algorithm
         int fastCutSuccessCount = 0;
@@ -130,7 +133,7 @@ void processGraphs(const string& graphDirectory, const string& contractOutputFil
         double fastCutSuccessRate = (double)fastCutSuccessCount / fastCutIterations;
         double fastCutAvgTime = (fastCutDuration / 1000.0) / fastCutIterations; // Convert to milliseconds
 
-        fastCutOut << fileName << "," << exactMinCut << "," << fastCutSuccessRate << "," << fastCutAvgTime << "," << fastCutTheoreticalProbability << "," << fastCutIterations << "\n";
+        fastCutOut << fileName << "," << exactMinCut << "," << fastCutSuccessRate << "," << fastCutAvgTime << "," << fastCutTheoreticalProbability << "," << fastCutIterations << "," << fastCutTheoreticalRunningTime << "\n";
 
         cout << "Graph: " << fileName << ", Min Cut: " << exactMinCut
              << ", Contract Success Rate: " << contractSuccessRate
