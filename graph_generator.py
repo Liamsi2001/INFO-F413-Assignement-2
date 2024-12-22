@@ -2,7 +2,7 @@ import networkx as nx
 import os
 import random
 
-# Seed globale pour la reproductibilité
+# Global seed for reproducibility
 SEED = 42
 random.seed(SEED)
 
@@ -22,8 +22,8 @@ def generate_powerlaw_cluster(n, m, p, seed=None):
     return ensure_connected(graph)
 
 def generate_grid_graph(n):
-    side_1 = int(n ** 0.5)
-    side_2 = (n + side_1 - 1) // side_1
+    side_1 = 4
+    side_2 = n // side_1
     graph = nx.grid_2d_graph(side_1, side_2)
     graph = nx.convert_node_labels_to_integers(graph)
     if graph.number_of_nodes() > n:
@@ -37,18 +37,18 @@ def generate_and_save_graphs():
 
     graph_types = [
         ("complete", lambda n: nx.complete_graph(n)),
-        ("bipartite", lambda n: nx.complete_bipartite_graph(n//2, n//2)),
-        ("barbell", lambda n: nx.barbell_graph(2*n//5, n//5)),
+        ("bipartite", lambda n: nx.complete_bipartite_graph(3*n//5, 2*n//5)),
+        ("barbell", lambda n: nx.barbell_graph(n//4, n//2)),
         ("grid", lambda n: generate_grid_graph(n)),
     ]
 
-    sizes = list(range(10, 201, 20))  # Tailles de 50 à 500, par pas de 50
+    sizes = list(range(20, 201, 20))
 
     for graph_type, generator in graph_types:
         for size in sizes:
             try:
                 graph = generator(size)
-                graph = ensure_connected(graph)  # Vérification de connectivité
+                graph = ensure_connected(graph)  # Ensure the graph is connected
                 filename = f"graphs/{graph_type}_{str(size).zfill(3)}.txt"
                 nx.write_edgelist(graph, filename, data=False)
                 print(f"Graph saved: {filename}")
@@ -60,13 +60,13 @@ def generate_and_save_exotic_graphs():
         os.makedirs("exotic_graphs")
 
     exotic_graph_types = [
-        ("erdos_renyi", lambda n: ensure_connected(nx.erdos_renyi_graph(n, 0.1, seed=SEED))),
-        ("watts_strogatz", lambda n: ensure_connected(nx.watts_strogatz_graph(n, 7, 0.1, seed=SEED))),
-        ("barabasi_albert", lambda n: ensure_connected(nx.barabasi_albert_graph(n, 9, seed=SEED))),
-        ("Power-Law Cluster", lambda n: generate_powerlaw_cluster(n, 7, 0.7, seed=SEED)),
+        ("erdos_renyi", lambda n: ensure_connected(nx.erdos_renyi_graph(n, 0.3, seed=SEED))),
+        ("watts_strogatz", lambda n: ensure_connected(nx.watts_strogatz_graph(n, 8, 0.1, seed=SEED))),
+        ("barabasi_albert", lambda n: ensure_connected(nx.barabasi_albert_graph(n, 2, seed=SEED))),
+        ("Power-Law Cluster", lambda n: generate_powerlaw_cluster(n, 8, 0.9, seed=SEED)),
     ]
 
-    sizes = list(range(10, 201, 20))
+    sizes = list(range(20, 201, 20))
 
     for graph_type, generator in exotic_graph_types:
         for size in sizes:

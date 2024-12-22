@@ -75,8 +75,8 @@ void processGraphs(const string& graphDirectory, const string& contractOutputFil
         double contractTheoreticalSuccessProbability = 2.0 / (numVertices * (numVertices - 1));
         double fastCutTheoreticalProbability = 1 / log2(numVertices); // FastCut theoretical probability
 
-        double contractTheoreticalRunningTime = numVertices * numVertices;
-        double fastCutTheoreticalRunningTime = numVertices * numVertices * log2(numVertices);
+        double contractTheoreticalRunningTime = numVertices * numVertices / 3000;
+        double fastCutTheoreticalRunningTime = numVertices * numVertices * log2(numVertices) / 300;
 
         // Read the graph from the file
         Graph graph = readGraphFromFile(filePath);
@@ -88,7 +88,7 @@ void processGraphs(const string& graphDirectory, const string& contractOutputFil
         int contractSuccessCount = 0;
         int contractIterations = 0;
         auto contractStart = high_resolution_clock::now();
-        auto timeLimit = milliseconds(1000);
+        auto timeLimit = milliseconds(100);
 
         while (true) {
             int contractMinCut = contractAlgorithm(graph, numVertices);
@@ -98,13 +98,13 @@ void processGraphs(const string& graphDirectory, const string& contractOutputFil
             contractIterations++;
 
             auto now = high_resolution_clock::now();
-            if (now - contractStart > timeLimit) {
+            if (now - contractStart > timeLimit*numVertices) {
                 break;
             }
         }
 
         auto contractEnd = high_resolution_clock::now();
-        double contractDuration = duration_cast<microseconds>(contractEnd - contractStart).count();
+        double contractDuration = static_cast<double>(duration_cast<microseconds>(contractEnd - contractStart).count());
         double contractSuccessRate = (double)contractSuccessCount / contractIterations;
         double contractAvgTime = (contractDuration / 1000.0) / contractIterations; // Convert to milliseconds
 
@@ -123,13 +123,13 @@ void processGraphs(const string& graphDirectory, const string& contractOutputFil
             fastCutIterations++;
 
             auto now = high_resolution_clock::now();
-            if (now - fastCutStart > timeLimit) {
+            if (now - fastCutStart > timeLimit*numVertices) {
                 break;
             }
         }
 
         auto fastCutEnd = high_resolution_clock::now();
-        double fastCutDuration = duration_cast<microseconds>(fastCutEnd - fastCutStart).count();
+        double fastCutDuration = static_cast<double>(duration_cast<microseconds>(fastCutEnd - fastCutStart).count());
         double fastCutSuccessRate = (double)fastCutSuccessCount / fastCutIterations;
         double fastCutAvgTime = (fastCutDuration / 1000.0) / fastCutIterations; // Convert to milliseconds
 
@@ -147,7 +147,7 @@ void processGraphs(const string& graphDirectory, const string& contractOutputFil
 }
 
 int main() {
-    srand(time(0));
+    srand(static_cast<unsigned int>(time(0)));
 
     // Process standard graphs
     processGraphs("graphs", "contract_simple.csv", "fast_simple.csv");

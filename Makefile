@@ -2,8 +2,8 @@
 
 # Compiler
 CXX = g++
-CXXFLAGS = -std=c++17 -O2 -Wall -pthread # C++ flags
-PYTHON = python  # Python executable
+CXXFLAGS = -std=c++17 -O2 -Wall -pthread  # C++ flags
+PYTHON = python  # Python interpreter
 
 # Targets
 TARGET = main
@@ -49,7 +49,7 @@ plot: $(CSV_FILES)
 
 # Clean up build files
 clean:
-	rm -f $(TARGET) $(OBJECTS) $(CSV_FILES) $(PLOT_OUTPUT)
+	rm -f $(TARGET) $(OBJECTS) $(PLOT_OUTPUT)
 
 # Default rule (runs data and plot)
 all: data plot

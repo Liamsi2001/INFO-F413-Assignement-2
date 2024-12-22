@@ -10,13 +10,13 @@ using namespace std;
 using Edge = pair<int, int>;
 using Graph = vector<Edge>;
 
-// Optimized brute-force min-cut calculation
+
+// Calculate the minimum cut in a graph using brute force
 int bruteForceMinCut(const Graph &graph, int n) {
-    if (n <= 1) return 0;  // No cut possible for single vertex or empty graph
+    if (n <= 1) return 0;
 
     int minCut = INT_MAX;
 
-    // Collect all unique vertices
     unordered_set<int> vertices;
     for (const auto &edge : graph) {
         vertices.insert(edge.first);
@@ -24,33 +24,41 @@ int bruteForceMinCut(const Graph &graph, int n) {
     }
 
     vector<int> vertexList(vertices.begin(), vertices.end());
-    int vertexCount = vertexList.size();
+    size_t vertexCount = vertexList.size();
     int subsetSize = 1 << vertexCount;
 
-    // Map vertex to index for faster lookup
-    unordered_map<int, int> vertexIndex;
-    for (int i = 0; i < vertexCount; ++i) {
+    unordered_map<int, size_t> vertexIndex;
+    for (size_t i = 0; i < vertexCount; ++i) {
         vertexIndex[vertexList[i]] = i;
     }
 
-    // Iterate over all subsets except empty and full set
-    for (int mask = 1; mask < subsetSize - 1; ++mask) {
+    // Construct the adjacency matrix
+    vector<vector<int>> adjacency(vertexCount, vector<int>(vertexCount, 0));
+    for (const auto &edge : graph) {
+        size_t u = vertexIndex[edge.first];
+        size_t v = vertexIndex[edge.second];
+        adjacency[u][v]++;
+        adjacency[v][u]++;
+    }
+
+    // Try all possible subsets of vertices
+    for (int mask = 1; mask < (subsetSize / 2); ++mask) {  // Avoid duplicates by iterating only half of the subsets
         int cutSize = 0;
-        for (const auto &edge : graph) {
-            int uIndex = vertexIndex[edge.first];
-            int vIndex = vertexIndex[edge.second];
 
-            bool uInSubset = mask & (1 << uIndex);
-            bool vInSubset = mask & (1 << vIndex);
+        for (size_t u = 0; u < vertexCount; ++u) {
+            for (size_t v = u + 1; v < vertexCount; ++v) {
+                bool uInSubset = mask & (1 << u);
+                bool vInSubset = mask & (1 << v);
 
-            if (uInSubset != vInSubset) {
-                ++cutSize;
+                if (uInSubset != vInSubset) {
+                    cutSize += adjacency[u][v];
+                }
             }
         }
+
         minCut = min(minCut, cutSize);
     }
 
     return minCut;
 }
-
 
