@@ -93,7 +93,7 @@ def plot_iteration_times(contract_simple, contract_exotic, fast_simple, fast_exo
     for graph_type in contract_exotic_data['Graph Type'].unique():
         subset = contract_exotic_data[contract_exotic_data['Graph Type'] == graph_type]
         ax[0].plot(subset['Nodes'], subset['Avg Iteration Time (ms)'], label=f"{graph_type}", marker='o')
-    ax[0].plot(theoretical_contract['Nodes'], theoretical_contract['Theoretical Running Time (ms)'], linestyle='--', label="Contract Theoretical 1/3000 n²", color="black")
+    ax[0].plot(theoretical_contract['Nodes'], theoretical_contract['Theoretical Running Time (ms)'], linestyle='--', label="Contract Theoretical (1/3000 n²)", color="black")
     ax[0].set_xlabel("Number of Nodes")
     ax[0].set_ylabel("Avg Iteration Time (ms)")
     ax[0].set_title("Contract Average Iteration Time")
@@ -106,7 +106,7 @@ def plot_iteration_times(contract_simple, contract_exotic, fast_simple, fast_exo
     for graph_type in fast_exotic_data['Graph Type'].unique():
         subset = fast_exotic_data[fast_exotic_data['Graph Type'] == graph_type]
         ax[1].plot(subset['Nodes'], subset['Avg Iteration Time (ms)'], label=f"{graph_type}", marker='o')
-    ax[1].plot(theoretical_fastcut['Nodes'], theoretical_fastcut['Theoretical Running Time (ms)'], linestyle='--', label="FastCut Theoretical 1/300 n²log(n)", color="black")
+    ax[1].plot(theoretical_fastcut['Nodes'], theoretical_fastcut['Theoretical Running Time (ms)'], linestyle='--', label="FastCut Theoretical (1/300 n²log(n))", color="black")
     ax[1].set_xlabel("Number of Nodes")
     ax[1].set_ylabel("Avg Iteration Time (ms)")
     ax[1].set_title("FastCut Average Iteration Time")
